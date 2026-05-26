@@ -74,7 +74,4 @@ cd build
 bash run_all_kernels.sh
 ```
 
-## Developed By
 
-**SAKSHI A S & Team**
-Compiler Design Lab Project focusing on LLVM, Clang, React, and AST Optimization.
