@@ -1,0 +1,25 @@
+# Node / Frontend
+node_modules/
+dist/
+.env
+.env.local
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+env/
+.venv/
+
+# Build outputs
+build/bin/
+build/obj/
+*.o
+*.out
+*.exe
+
+# OS generated files
+.DS_Store
+Thumbs.db

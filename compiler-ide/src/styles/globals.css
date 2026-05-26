@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== CSS Custom Properties ===== */
+:root {
+  --bg-base: #0B1020;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1a2236;
+  --bg-border: #1f2f4a;
+  --accent: #7C3AED;
+  --accent-hover: #6d28d9;
+  --accent-glow: rgba(124, 58, 237, 0.35);
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #4b5563;
+  --panel-handle: #2a3f5f;
+}
+
+/* ===== Base Reset ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Custom Scrollbars ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-handle) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--panel-handle);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* ===== React Flow ===== */
+.react-flow__background {
+  background: var(--bg-secondary) !important;
+}
+
+.react-flow__controls {
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--bg-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+}
+
+.react-flow__controls-button {
+  background: var(--bg-tertiary) !important;
+  border-color: var(--bg-border) !important;
+  color: var(--text-secondary) !important;
+  fill: var(--text-secondary) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--accent) !important;
+  fill: white !important;
+}
+
+.react-flow__edge-path {
+  stroke: #4b5563 !important;
+  stroke-width: 1.5px !important;
+}
+
+.react-flow__minimap {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--bg-border) !important;
+  border-radius: 8px !important;
+}
+
+/* ===== Resizable panel handles ===== */
+[data-panel-group-direction="horizontal"] > [data-resize-handle] {
+  width: 4px;
+  background: var(--bg-border);
+  cursor: col-resize;
+  transition: background 0.2s;
+  position: relative;
+}
+
+[data-panel-group-direction="horizontal"] > [data-resize-handle]:hover,
+[data-panel-group-direction="horizontal"] > [data-resize-handle][data-resize-handle-active] {
+  background: var(--accent);
+}
+
+[data-panel-group-direction="vertical"] > [data-resize-handle] {
+  height: 4px;
+  background: var(--bg-border);
+  cursor: row-resize;
+  transition: background 0.2s;
+}
+
+[data-panel-group-direction="vertical"] > [data-resize-handle]:hover,
+[data-panel-group-direction="vertical"] > [data-resize-handle][data-resize-handle-active] {
+  background: var(--accent);
+}
+
+/* ===== Monaco Editor host ===== */
+.monaco-editor,
+.monaco-editor .overflow-guard {
+  border-radius: 0 !important;
+}
+
+.monaco-editor .minimap {
+  display: none !important;
+}
+
+/* ===== Animations ===== */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); opacity: 1; }
+  50% { box-shadow: 0 0 12px 4px var(--accent-glow); opacity: 0.8; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 1.5s linear infinite; }
+.animate-fade-in-up { animation: fade-in-up 0.3s ease-out both; }
+.animate-slide-in-left { animation: slide-in-left 0.25s ease-out both; }
+.animate-blink { animation: blink 1.2s ease-in-out infinite; }
+
+/* ===== Phase status dots ===== */
+.phase-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.phase-dot-idle { background: var(--text-muted); }
+.phase-dot-running { background: var(--warning); animation: blink 0.8s ease-in-out infinite; }
+.phase-dot-done { background: var(--success); }
+.phase-dot-error { background: var(--error); }
+
+/* ===== Token badges ===== */
+.token-keyword { color: #c084fc; font-weight: 600; }
+.token-type { color: #67e8f9; }
+.token-identifier { color: #86efac; }
+.token-operator { color: #fbbf24; }
+.token-literal { color: #fb923c; }
+.token-punctuation { color: #94a3b8; }
+.token-unknown { color: #9ca3af; }
+
+/* ===== Node colors for React Flow AST ===== */
+.ast-node-function { border-color: var(--accent) !important; }
+.ast-node-declaration { border-color: #22d3ee !important; }
+.ast-node-assignment { border-color: var(--warning) !important; }
+.ast-node-expression { border-color: #86efac !important; }
+.ast-node-return { border-color: var(--error) !important; }
+.ast-node-loop { border-color: #f472b6 !important; }
+
+/* ===== Tabs ===== */
+.tab-active {
+  color: white;
+  border-bottom: 2px solid var(--accent);
+}
+
+/* ===== Glass card ===== */
+.glass-card {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--bg-border);
+  border-radius: 8px;
+}
