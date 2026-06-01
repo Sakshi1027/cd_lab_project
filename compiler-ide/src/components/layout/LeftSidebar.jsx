@@ -10,15 +10,19 @@ const FILE_ICONS = {
   'kernel_dot_product.c': '🔢',
   'kernel_fir_filter.c': '📡',
   'kernel_softmax.c': '🧠',
-  'kernel_sigmoid.c': '⚡',
+    'kernel_sigmoid.c': '⚡',
   'kernel_polynomial.c': '📐',
+  'kernel_int_quantization.c': '📦',
+    'kernel_double_demotion.c': '🎯',
+  'kernel_int_extreme.c': '🚧',
+  'kernel_double_extreme.c': '🔬',
 };
 
 export default function LeftSidebar() {
   const { files, activeFile, setActiveFile } = useCompilerStore();
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ background: '#0f1929', borderRight: '1px solid #1f2f4a' }}>
+    <div className="h-full flex flex-col overflow-hidden glass-panel">
       {/* Phase Progress */}
       <div className="flex-none px-3 pt-3">
         <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#4b5563' }}>
@@ -27,7 +31,7 @@ export default function LeftSidebar() {
         <PhaseList />
       </div>
 
-      <div className="my-2 mx-3 border-t" style={{ borderColor: '#1f2f4a' }} />
+      <div className="my-2 mx-3 border-t border-white/5" />
 
       {/* File Explorer */}
       <div className="flex-none px-3">
@@ -44,11 +48,7 @@ export default function LeftSidebar() {
               whileHover={{ x: 2 }}
               onClick={() => setActiveFile(f)}
               className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-all text-left"
-              style={{
-                background: activeFile === f ? 'rgba(124,58,237,0.15)' : 'transparent',
-                color: activeFile === f ? '#c084fc' : '#64748b',
-                borderLeft: activeFile === f ? '2px solid #7C3AED' : '2px solid transparent'
-              }}
+              style={{ background: activeFile === f ? 'linear-gradient(90deg, rgba(139,92,246,0.15) 0%, transparent 100%)' : 'transparent', color: activeFile === f ? '#c084fc' : '#94a3b8', borderLeft: activeFile === f ? '2px solid #8b5cf6' : '2px solid transparent', textShadow: activeFile === f ? '0 0 10px rgba(139,92,246,0.5)' : 'none' }}
             >
               <span className="text-base leading-none">{FILE_ICONS[f] || '📄'}</span>
               <span className="truncate">{f}</span>
@@ -60,7 +60,7 @@ export default function LeftSidebar() {
         </div>
       </div>
 
-      <div className="my-2 mx-3 border-t" style={{ borderColor: '#1f2f4a' }} />
+      <div className="my-2 mx-3 border-t border-white/5" />
 
       {/* Metrics */}
       <div className="flex-1 overflow-y-auto px-3 pb-3">

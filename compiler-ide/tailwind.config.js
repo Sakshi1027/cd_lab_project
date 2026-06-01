@@ -7,11 +7,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        'bg-base':      '#0B1020',
+        'bg-base':      '#050814',
+        'bg-glass':     'rgba(17, 24, 39, 0.45)',
         'bg-secondary': '#111827',
         'bg-tertiary':  '#1a2236',
-        'bg-border':    '#1f2f4a',
-        'accent-purple':'#7C3AED',
+        'bg-border':    'rgba(31, 47, 74, 0.5)',
+        'accent-purple':'#8b5cf6',
         'accent-green': '#22C55E',
         'accent-amber': '#F59E0B',
         'accent-red':   '#EF4444',

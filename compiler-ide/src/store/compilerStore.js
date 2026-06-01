@@ -12,6 +12,29 @@ const DEFAULT_CODES = {
     c = b + 5.0;
     return 0;
 }`,
+  "kernel_int_extreme.c": `#include <stdio.h>
+#include <stdint.h>
+int main() {
+    int sum = 0;
+    int limit = 100000000;
+    for (int i = 0; i < limit; i++) {
+        sum = sum + 2;
+    }
+    printf("Large Integer Sum: %d\n", sum);
+    return 0;
+}`,
+  "kernel_double_extreme.c": `#include <stdio.h>
+int main() {
+    double base_value = 1.0;
+    double tiny_delta = 1.0e-15; 
+    double result = base_value + tiny_delta;
+    if (result > 1.0) {
+        printf("Precision retained! Result: %.16f\n", result);
+    } else {
+        printf("Catastrophic cancellation occurred!\n");
+    }
+    return 0;
+}`,
   "kernel_dot_product.c": `float dot_product() {
     float a_val = 1.5;
     float b_val = 2.0;
@@ -52,7 +75,7 @@ const DEFAULT_CODES = {
     float activated = term + 0.5;
     return activated;
 }`,
-  "kernel_polynomial.c": `float poly() {
+    "kernel_polynomial.c": `float poly() {
     float x = 0.5;
     float x2 = x * x;
     float x3 = x2 * x;
@@ -62,6 +85,76 @@ const DEFAULT_CODES = {
     float acc2 = term3 - term2;
     float out = acc2 + 1.0;
     return out;
+}`,
+  "kernel_int_quantization.c": `#include <stdio.h>
+#include <stdint.h>
+int main() {
+    int sum = 0;
+    int limit = 100;
+    for (int i = 0; i < limit; i++) {
+        if (i < 50) {
+            sum = sum + 1;
+        }
+    }
+    printf("Quantized Integer Sum: %d
+", sum);
+    return 0;
+}`,
+  "kernel_int_extreme.c": `#include <stdio.h>
+#include <stdint.h>
+int main() {
+    int sum = 0;
+    int limit = 100000000;
+    for (int i = 0; i < limit; i++) {
+        sum = sum + 2;
+    }
+    printf("Large Integer Sum: %d\n", sum);
+    return 0;
+}`,
+  "kernel_double_extreme.c": `#include <stdio.h>
+int main() {
+    double base_value = 1.0;
+    double tiny_delta = 1.0e-15; 
+    double result = base_value + tiny_delta;
+    if (result > 1.0) {
+        printf("Precision retained! Result: %.16f\n", result);
+    } else {
+        printf("Catastrophic cancellation occurred!\n");
+    }
+    return 0;
+}`,
+  "kernel_double_demotion.c": `#include <stdio.h>
+int main() {
+    double alpha = 0.5;
+    double beta = 1.25;
+    double gamma;
+    gamma = (alpha * 2.0) + beta;
+    printf("Demoted Float Result: %f
+", (float)gamma);
+    return 0;
+}`,
+  "kernel_int_extreme.c": `#include <stdio.h>
+#include <stdint.h>
+int main() {
+    int sum = 0;
+    int limit = 100000000;
+    for (int i = 0; i < limit; i++) {
+        sum = sum + 2;
+    }
+    printf("Large Integer Sum: %d\n", sum);
+    return 0;
+}`,
+  "kernel_double_extreme.c": `#include <stdio.h>
+int main() {
+    double base_value = 1.0;
+    double tiny_delta = 1.0e-15; 
+    double result = base_value + tiny_delta;
+    if (result > 1.0) {
+        printf("Precision retained! Result: %.16f\n", result);
+    } else {
+        printf("Catastrophic cancellation occurred!\n");
+    }
+    return 0;
 }`
 };
 
@@ -84,7 +177,7 @@ export const useCompilerStore = create((set, get) => ({
   // Metrics
   tokensCount: 0,
   errorMargin: "0.0",
-  memorySaving: "0.0%",
+  memorySaving: "0.0%", estimatedSpeedup: "1.0x",
   
   // Results
   tokens: [],
@@ -108,7 +201,7 @@ export const useCompilerStore = create((set, get) => ({
     outputs: {},
     tokensCount: 0,
     errorMargin: "0.0",
-    memorySaving: "0.0%"
+    memorySaving: "0.0%", estimatedSpeedup: "1.0x"
   }),
   
   setDemoMode: (val) => set({ demoMode: val }),
@@ -127,7 +220,7 @@ export const useCompilerStore = create((set, get) => ({
     statusMessage: "Compiler Ready",
     tokensCount: 0,
     errorMargin: "0.0",
-    memorySaving: "0.0%"
+    memorySaving: "0.0%", estimatedSpeedup: "1.0x"
   }),
 
   runCompiler: async () => {
@@ -173,7 +266,7 @@ export const useCompilerStore = create((set, get) => ({
           outputs: mockData.outputs,
           tokensCount: mockData.tokensCount,
           errorMargin: mockData.errorMargin,
-          memorySaving: mockData.memorySaving,
+          memorySaving: mockData.memorySaving, estimatedSpeedup: mockData.estimatedSpeedup,
           statusMessage: mockData.problems.length ? "Compilation finished with warnings" : "Verification Passed"
         });
       } else {
@@ -188,7 +281,7 @@ export const useCompilerStore = create((set, get) => ({
             outputs: result.outputs || {},
             tokensCount: result.tokensCount || (result.tokens ? result.tokens.length : 0),
             errorMargin: result.errorMargin || "0.0",
-            memorySaving: result.memorySaving || "0.0%",
+            memorySaving: result.memorySaving || "0.0%", estimatedSpeedup: result.estimatedSpeedup || "1.0x",
             statusMessage: result.errors && result.errors.length ? "Compilation issues found" : "Verification Passed"
           });
         } else {
@@ -209,7 +302,7 @@ export const useCompilerStore = create((set, get) => ({
         outputs: mockData.outputs,
         tokensCount: mockData.tokensCount,
         errorMargin: mockData.errorMargin,
-        memorySaving: mockData.memorySaving,
+        memorySaving: mockData.memorySaving, estimatedSpeedup: mockData.estimatedSpeedup,
         statusMessage: "Fallback Mode Active (Offline)"
       });
     } finally {
