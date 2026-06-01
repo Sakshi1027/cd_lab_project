@@ -13,6 +13,20 @@ A next-generation compiler visualization platform and Clang-based tool that safe
   - **Output Panel**: Side-by-side terminal logs, intermediate DFG instructions, and rewritten code.
 - **FastAPI Backend**: Provides REST API endpoints to trigger the Clang compiler processes and feed output to the frontend.
 
+## Screenshots
+
+### Landing Page
+![Landing Page](./landing_page.png)
+
+### IDE & Workflows
+![IDE Demo 1](./demo1.png)
+![IDE Demo 2](./demo2.png)
+![IDE Demo 3](./demo3.png)
+![IDE Demo 4](./demo4.png)
+![IDE Demo 5](./demo5.png)
+![IDE Demo 6](./demo6.png)
+![IDE Demo 7](./demo7.png)
+
 ## Project Structure
 
 - `compiler-ide/` - The React/Vite web application and UI.
@@ -60,7 +74,4 @@ cd build
 bash run_all_kernels.sh
 ```
 
-## Developed By
 
-**SAKSHI A S & Team**
-Compiler Design Lab Project focusing on LLVM, Clang, React, and AST Optimization.

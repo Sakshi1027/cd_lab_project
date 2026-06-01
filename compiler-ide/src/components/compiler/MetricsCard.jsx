@@ -1,9 +1,9 @@
 import React from 'react';
-import { Hash, Activity, HardDrive, AlertTriangle } from 'lucide-react';
+import { Hash, Activity, HardDrive, AlertTriangle, Zap } from 'lucide-react';
 import { useCompilerStore } from '../../store/compilerStore';
 
 export default function MetricsCard() {
-  const { tokensCount, errorMargin, memorySaving, problems } = useCompilerStore();
+  const { tokensCount, errorMargin, memorySaving, problems, estimatedSpeedup } = useCompilerStore();
 
   const metrics = [
     {
@@ -31,14 +31,20 @@ export default function MetricsCard() {
       color: problems.length > 0 
         ? "text-accent-red bg-accent-red/10 border-accent-red/20 animate-pulse" 
         : "text-slate-400 bg-slate-400/10 border-slate-400/20"
+    },
+    {
+      title: "Est. Speedup",
+      value: estimatedSpeedup || "1.0x",
+      icon: Zap,
+      color: "text-accent-purple bg-accent-purple/10 border-accent-purple/20"
     }
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-2 p-2 border-b border-bg-border bg-bg-secondary shrink-0">
+    <div className="grid grid-cols-2 gap-2 p-2 border-b border-bg-border  shrink-0">
       {metrics.map((m, i) => (
-        <div key={i} className={`flex items-center gap-2 p-2 border rounded shadow-sm ${m.color}`}>
-          <div className="p-1 rounded bg-bg-primary shrink-0">
+        <div key={i} className={`flex items-center gap-2 p-2 border rounded-xl shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(139,92,246,0.15)] ${m.color}`}>
+          <div className="p-1 rounded bg-black/20 backdrop-blur-sm shrink-0">
             <m.icon size={14} />
           </div>
           <div className="overflow-hidden">

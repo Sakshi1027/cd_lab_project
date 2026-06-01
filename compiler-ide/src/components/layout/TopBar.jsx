@@ -42,8 +42,7 @@ export default function TopBar() {
 
   return (
     <header
-      className="shrink-0 h-12 flex items-center gap-2 px-4 border-b"
-      style={{ background: '#0d1526', borderColor: '#1f2f4a' }}
+      className="shrink-0 h-14 flex items-center gap-3 px-4 glass-panel z-10"
     >
       {/* Logo */}
       <div className="flex items-center gap-2 mr-2">
@@ -62,7 +61,7 @@ export default function TopBar() {
         onClick={runCompiler}
         disabled={isRunning}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ background: isRunning ? '#374151' : '#7C3AED', color: 'white' }}
+        style={{ background: isRunning ? '#374151' : 'linear-gradient(135deg, #8b5cf6, #3b82f6)', color: 'white', boxShadow: '0 4px 15px rgba(139,92,246,0.3)' }}
       >
         {isRunning
           ? <Loader2 size={12} className="animate-spin-slow" />
@@ -76,8 +75,7 @@ export default function TopBar() {
         whileTap={{ scale: 0.96 }}
         onClick={clearAll}
         disabled={isRunning}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all disabled:opacity-40"
-        style={{ borderColor: '#374151', color: '#94a3b8' }}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-40 glass-button text-slate-300"
       >
         <Trash2 size={12} />
         Clear
@@ -87,8 +85,7 @@ export default function TopBar() {
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.96 }}
         onClick={handleExport}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all"
-        style={{ borderColor: '#374151', color: '#94a3b8' }}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all glass-button text-slate-300"
       >
         <Download size={12} />
         Export
