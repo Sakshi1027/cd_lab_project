@@ -1,20 +1,31 @@
 import React from 'react';
 import { useCompilerStore } from '../../store/compilerStore';
 import { motion } from 'framer-motion';
+import DataTypePanel from './DataTypePanel';
 
 const TABS = [
+  { id: 'datatypes',    label: 'Data Type Analysis' },
   { id: 'lexical',      label: 'Lexical' },
   { id: 'syntax',       label: 'Syntax'  },
   { id: 'semantic',     label: 'Semantic' },
   { id: 'intermediate', label: 'Intermediate' },
   { id: 'optimized',    label: 'Precision Analysis' },
   { id: 'generated',    label: 'Generated Code' },
-  { id: 'llvm_ir',      label: 'LLVM IR' },
+  { id: 'original_llvm_ir', label: 'Original LLVM IR' },
+  { id: 'optimized_llvm_ir', label: 'Optimized LLVM IR' },
+  { id: 'memory_report', label: 'Memory Report' },
   { id: 'logs',         label: 'Logs & Verification' }
 ];
 
+const DELIVERABLES = {
+  semantic: "Deliverable 1: Clang AST analysis pass tracing precision requirements through data-flow chains",
+  intermediate: "Deliverable 2: Backward precision propagation engine given output tolerance, determine which intermediates can be demoted",
+  optimized: "Deliverable 3: AST rewriter applying safe type demotions automatically",
+  logs: "Deliverable 4: Dual-precision verification mode: compile both original and demoted versions, compare results at runtime\nDeliverable 5: Evaluation on 5 ML/signal-processing kernels showing performance gains vs. accuracy loss"
+};
+
 export default function BottomPanel() {
-  const { outputs, activeTab, setActiveTab, isRunning, clearAll } = useCompilerStore();
+  const { outputs, activeTab, setActiveTab, isRunning } = useCompilerStore();
 
   const content = outputs[activeTab] || "";
 
@@ -44,18 +55,23 @@ export default function BottomPanel() {
             </button>
           )})}
         </div>
-        <button 
-          onClick={clearAll}
-          className="px-3.5 py-2 text-xs font-semibold text-slate-500 hover:text-white select-none transition-colors border-l border-bg-border/60 hover:bg-bg-tertiary"
-        >
-          Clear Output
-        </button>
       </div>
 
       {/* Output screen */}
-      <div className="flex-1 overflow-y-auto p-4 font-mono text-[11px] leading-relaxed ">
+      {activeTab === 'datatypes' ? (
+        <div className="flex-1 overflow-hidden min-h-0 relative">
+          <DataTypePanel />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-4 font-mono text-[11px] leading-relaxed flex flex-col">
+          {DELIVERABLES[activeTab] && (
+          <div className="mb-4 p-3 bg-indigo-900/20 border border-indigo-500/30 rounded text-indigo-200 font-sans text-xs whitespace-pre-wrap shrink-0">
+            <strong className="text-indigo-300 block mb-1">Assignment Deliverable:</strong>
+            {DELIVERABLES[activeTab]}
+          </div>
+        )}
         {isRunning ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-600 text-xs gap-3 select-none">
+          <div className="flex flex-col items-center justify-center flex-1 text-slate-600 text-xs gap-3 select-none">
             <div className="w-5 h-5 border-2 border-accent-purple border-t-transparent rounded-full animate-spin" />
             <span>Compiling Compiler Phase Outputs...</span>
           </div>
@@ -64,11 +80,12 @@ export default function BottomPanel() {
             {content}
           </pre>
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-600 text-xs select-none">
+          <div className="flex flex-1 items-center justify-center text-slate-600 text-xs select-none">
             No compiler logs compiled yet. Write code in the editor and click "Run Compiler" above.
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

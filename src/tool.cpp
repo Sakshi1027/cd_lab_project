@@ -17,8 +17,28 @@ using namespace clang::tooling;
 using namespace clang::ast_matchers;
 
 // ==========================================
-// 1. Data-Flow Graph (DFG)
+// 1. Data-Flow Graph (DFG) & Symbol Table
 // ==========================================
+struct VarMetadata {
+    std::string name;
+    std::string type;
+    unsigned int line;
+    std::string scope;
+};
+std::vector<VarMetadata> DeclaredVariables;
+
+bool isNumericType(const std::string& type) {
+    // Basic types
+    if (type.find("char") != std::string::npos) return true;
+    if (type.find("short") != std::string::npos) return true;
+    if (type.find("int") != std::string::npos) return true;
+    if (type.find("long") != std::string::npos) return true;
+    if (type.find("float") != std::string::npos) return true;
+    if (type.find("double") != std::string::npos) return true;
+    if (type.find("_Float16") != std::string::npos) return true;
+    return false;
+}
+
 struct DFGNode {
     std::string name;
     std::string type;
@@ -108,13 +128,52 @@ public:
 };
 
 // ==========================================
-// 4. AST Rewriter Callback (Member 3)
+// 4. AST Declaration Analysis (Metadata)
+// ==========================================
+class DeclAnalysisCallback : public MatchFinder::MatchCallback {
+public:
+    virtual void run(const MatchFinder::MatchResult &Result) override {
+        const auto *varDecl = Result.Nodes.getNodeAs<VarDecl>("metadataVarDecl");
+        if (varDecl) {
+            std::string name = varDecl->getNameAsString();
+            if (name.empty()) return;
+            std::string type = varDecl->getType().getAsString();
+            
+            if (!isNumericType(type)) return;
+            
+            unsigned int line = Result.Context->getSourceManager().getSpellingLineNumber(varDecl->getLocation());
+            std::string scope = "Global";
+            if (auto *DC = varDecl->getDeclContext()) {
+                if (auto *FD = dyn_cast<FunctionDecl>(DC)) {
+                    scope = FD->getNameAsString();
+                }
+            }
+            DeclaredVariables.push_back({name, type, line, scope});
+        }
+    }
+};
+
+// ==========================================
+// 5. AST Rewriter Callback (Member 3)
 // ==========================================
 #include <set>
 
 clang::Rewriter TheRewriter;
 bool RewriterInitialized = false;
 std::set<unsigned> RewrittenLocations;
+
+std::string getDemotedType(const std::string& originalType) {
+    if (originalType == "double") return "float";
+    if (originalType == "float") return "_Float16";
+    if (originalType == "long long") return "int32_t";
+    if (originalType == "long") return "int32_t";
+    if (originalType == "int") return "int16_t";
+    if (originalType == "short") return "int8_t";
+    if (originalType == "unsigned long long") return "uint32_t";
+    if (originalType == "unsigned int") return "uint16_t";
+    if (originalType == "unsigned short") return "uint8_t";
+    return "";
+}
 
 class RewriteCallback : public MatchFinder::MatchCallback {
 public:
@@ -125,21 +184,34 @@ public:
         }
 
         const auto *varDecl = Result.Nodes.getNodeAs<VarDecl>("varDecl");
-        if (varDecl && varDecl->getType().getAsString() == "float") {
-            std::string varName = varDecl->getNameAsString();
+        if (varDecl) {
+            std::string originalType = varDecl->getType().getAsString();
+            std::string demotedType = getDemotedType(originalType);
             
-            if (Graph.find(varName) != Graph.end() && Graph[varName]->isSafeToDemote) {
-                if (auto typeLoc = varDecl->getTypeSourceInfo()->getTypeLoc()) {
-                    SourceLocation beginLoc = typeLoc.getBeginLoc();
-                    unsigned locID = beginLoc.getRawEncoding();
-                    
-                    // Only rewrite this location if we haven't already!
-                    // This fixes the bug where 'float a, b, c;' writes _Float16 three times.
-                    if (RewrittenLocations.find(locID) == RewrittenLocations.end()) {
-                        TheRewriter.ReplaceText(typeLoc.getSourceRange(), "_Float16");
-                        RewrittenLocations.insert(locID);
+            if (demotedType != "") {
+                std::string varName = varDecl->getNameAsString();
+                
+                // For demonstration of Universal Type Demotion, if it's in the DFG and safe, 
+                // OR if it's an integer type (which doesn't receive precision propagation budgets), we demote it.
+                bool isSafe = false;
+                if (Graph.find(varName) != Graph.end() && Graph[varName]->isSafeToDemote) {
+                    isSafe = true; // Floats evaluated by error budget
+                } else if (originalType.find("float") == std::string::npos && originalType.find("double") == std::string::npos) {
+                    isSafe = true; // Integers are considered safe for structural demotion
+                }
+                
+                if (isSafe) {
+                    if (auto typeLoc = varDecl->getTypeSourceInfo()->getTypeLoc()) {
+                        SourceLocation beginLoc = typeLoc.getBeginLoc();
+                        unsigned locID = beginLoc.getRawEncoding();
+                        
+                        // Only rewrite this location if we haven't already!
+                        if (RewrittenLocations.find(locID) == RewrittenLocations.end()) {
+                            TheRewriter.ReplaceText(typeLoc.getSourceRange(), demotedType);
+                            RewrittenLocations.insert(locID);
+                        }
+                        llvm::outs() << "[REWRITER] Demoted variable '" << varName << "' from " << originalType << " to " << demotedType << "!\n";
                     }
-                    llvm::outs() << "[REWRITER] Upgraded variable '" << varName << "' to _Float16!\n";
                 }
             }
         }
@@ -162,6 +234,7 @@ int main(int argc, const char **argv) {
 
     // --- PASS 1: AST ANALYSIS ---
     AssignmentCallback AnalysisCb;
+    DeclAnalysisCallback DeclCb;
     MatchFinder AnalysisFinder;
     AnalysisFinder.addMatcher(
         binaryOperator(
@@ -169,10 +242,21 @@ int main(int argc, const char **argv) {
             hasLHS(ignoringParenImpCasts(declRefExpr().bind("lhsVar"))),
             hasRHS(ignoringParenImpCasts(expr().bind("rhsMath")))
         ).bind("assign"), &AnalysisCb);
+        
+    AnalysisFinder.addMatcher(varDecl().bind("metadataVarDecl"), &DeclCb);
     
     Tool.run(newFrontendActionFactory(&AnalysisFinder).get());
 
     // --- PRINT DELIVERABLE 1 OUTPUT ---
+    llvm::outs() << "\n=== DATATYPE METADATA ===\n[\n";
+    for (size_t i = 0; i < DeclaredVariables.size(); ++i) {
+        auto& v = DeclaredVariables[i];
+        llvm::outs() << "  {\"name\": \"" << v.name << "\", \"type\": \"" << v.type << "\", \"line\": " << v.line << ", \"scope\": \"" << v.scope << "\"}";
+        if (i < DeclaredVariables.size() - 1) llvm::outs() << ",";
+        llvm::outs() << "\n";
+    }
+    llvm::outs() << "]\n";
+
     llvm::outs() << "\n=== DELIVERABLE 1: AST Analysis & Data-Flow Extraction ===\n";
     for (const auto& pair : Graph) {
         DFGNode* node = pair.second;

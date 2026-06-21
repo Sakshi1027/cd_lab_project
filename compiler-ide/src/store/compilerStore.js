@@ -12,6 +12,37 @@ const DEFAULT_CODES = {
     c = b + 5.0;
     return 0;
 }`,
+  "test_datatypes.c": `int main() {
+    char c = 'a';
+    short s = 10;
+    int i = 100;
+    long l = 1000;
+    long long ll = 10000;
+    unsigned int ui = 200;
+    float f = 3.14f;
+    double d = 3.14159;
+    _Float16 f16 = 1.0f;
+    
+    int32_t fixed_int = 32;
+    uint16_t unsigned_fixed = 16;
+    
+    return 0;
+}`,
+  "test_semantics.c": `int main() {
+    // These values are small enough to be safely shrunk
+    int a = 100;           // safe for int8_t (-128 to 127)
+    int b = -30000;        // safe for int16_t (-32768 to 32767)
+    unsigned int c = 200;  // safe for uint8_t (0 to 255)
+    
+    // These values exceed the limits and should NOT be shrunk
+    int d = 40000;         // Exceeds int16_t, must remain int32_t
+    int e = 3000000000;    // Exceeds int32_t max (technically should be long)
+    unsigned int f = 70000; // Exceeds uint16_t, must remain uint32_t
+    
+    double high_prec = 3.14159; // Will be optimized to float
+    
+    return 0;
+}`,
   "kernel_int_extreme.c": `#include <stdio.h>
 #include <stdint.h>
 int main() {
@@ -161,8 +192,8 @@ int main() {
 export const useCompilerStore = create((set, get) => ({
   // Workspace files
   files: Object.keys(DEFAULT_CODES),
-  activeFile: "test.c",
-  code: DEFAULT_CODES["test.c"],
+  activeFile: "test_semantics.c",
+  code: DEFAULT_CODES["test_semantics.c"],
   demoMode: false, // Default to live integration mode so custom pasted code compiles
   
   // Compiler animation
@@ -184,6 +215,7 @@ export const useCompilerStore = create((set, get) => ({
   ast: null,
   problems: [],
   outputs: {},
+  datatypeAnalysis: null,
   
   // Bottom Panel states
   activeTab: "lexical",
@@ -199,6 +231,7 @@ export const useCompilerStore = create((set, get) => ({
     ast: null,
     problems: [],
     outputs: {},
+    datatypeAnalysis: null,
     tokensCount: 0,
     errorMargin: "0.0",
     memorySaving: "0.0%", estimatedSpeedup: "1.0x"
@@ -213,6 +246,7 @@ export const useCompilerStore = create((set, get) => ({
     ast: null,
     problems: [],
     outputs: {},
+    datatypeAnalysis: null,
     phaseStatus: {},
     activePhase: null,
     isRunning: false,
@@ -228,7 +262,7 @@ export const useCompilerStore = create((set, get) => ({
     set({ isRunning: true, compilingState: "compiling", statusMessage: "Compiling..." });
     
     // Clear old outputs
-    set({ tokens: [], ast: null, problems: [], outputs: {}, phaseStatus: {} });
+    set({ tokens: [], ast: null, problems: [], outputs: {}, datatypeAnalysis: null, phaseStatus: {} });
 
     const phases = ["lexical", "syntax", "semantic", "intermediate", "optimization", "codegen"];
     
@@ -279,6 +313,7 @@ export const useCompilerStore = create((set, get) => ({
             ast: result.ast || null,
             problems: result.errors || [],
             outputs: result.outputs || {},
+            datatypeAnalysis: result.datatypeAnalysis || null,
             tokensCount: result.tokensCount || (result.tokens ? result.tokens.length : 0),
             errorMargin: result.errorMargin || "0.0",
             memorySaving: result.memorySaving || "0.0%", estimatedSpeedup: result.estimatedSpeedup || "1.0x",
@@ -300,6 +335,7 @@ export const useCompilerStore = create((set, get) => ({
         ast: mockAST,
         problems: [{ severity: "error", line: 1, message: "FastAPI server unreachable. Loading safe Offline Demo data." }],
         outputs: mockData.outputs,
+        datatypeAnalysis: null,
         tokensCount: mockData.tokensCount,
         errorMargin: mockData.errorMargin,
         memorySaving: mockData.memorySaving, estimatedSpeedup: mockData.estimatedSpeedup,
